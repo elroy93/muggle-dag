@@ -2,10 +2,8 @@ package com.onemuggle.dag;
 
 import cn.hutool.core.annotation.AnnotationUtil;
 import cn.hutool.core.lang.Assert;
-import cn.hutool.core.util.StrUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -32,10 +30,10 @@ public class AbsDagExecutor<Context> implements IDagExecutor<Context> {
      * 构造器,每个图初始化一次. 不用每次提交任务的时候都初始化.
      * 如果工程只有一个图,可以使用单例模式构建.
      *
-     * @param executionThreadPools      执行节点的线程池
-     * @param monitorThreadPools        monitor使用的线程池
-     * @param dagNodes                  执行节点
-     * @param monitors                  节点监控
+     * @param executionThreadPools 执行节点的线程池
+     * @param monitorThreadPools   monitor使用的线程池
+     * @param dagNodes             执行节点
+     * @param monitors             节点监控
      */
     public AbsDagExecutor(ThreadPoolExecutor executionThreadPools,
                           ThreadPoolExecutor monitorThreadPools,
@@ -112,9 +110,7 @@ public class AbsDagExecutor<Context> implements IDagExecutor<Context> {
                 List<ListenableFuture<Object>> fatherFutures = fatherProducers.stream()
                         .map(fatherProducer -> buildNodeFuture(context, fatherProducer, nodeFatherProducerMap))
                         .collect(Collectors.toList());
-                return Futures.transformAsync(Futures.allAsList(fatherFutures),
-                        input -> currentNodeProducer.immediateFuture(context),
-                        executionThreadPools);
+                return currentNodeProducer.submit(fatherFutures, context);
             }
         };
 

@@ -1,12 +1,16 @@
 package com.onemuggle.dag;
 
+import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.JdkFutureAdapters;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import lombok.Getter;
+import org.apache.commons.collections4.CollectionUtils;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -77,4 +81,37 @@ public class DagNodeProducer<Context> {
         monitors.forEach(monitor -> monitor.executionBefore(this, context));
         return dagNode.execute(context);
     }
+
+
+    @SuppressWarnings("unchecked")
+    public ListenableFuture<Object> submit(List<ListenableFuture<Object>> fatherFutures, Context context) {
+        if (requested.compareAndSet(false, true)) {
+            fatherFutures = Optional.ofNullable(fatherFutures).orElse(Collections.emptyList());
+            ListenableFuture<List<Object>> fatherFuture = Futures.allAsList(fatherFutures);
+            if (isAsync) {
+                Function<Object, ListenableFuture<Object>> asyncExeDagFunction = input -> {
+                    ListenableFuture<Object> retFuture;
+                    Object dagNodeResult = doExecute(context);
+                    if (dagNodeResult instanceof ListenableFuture) {
+                        retFuture = (ListenableFuture<Object>) dagNodeResult;
+                    } else if (dagNodeResult instanceof Future) {
+                        retFuture = JdkFutureAdapters.listenInPoolThread((Future) dagNodeResult, executionThreadPools);
+                    } else {
+                        throw new RuntimeException("异步流程操作只能回返future对象实例");
+                    }
+                    return retFuture;
+                };
+                future = Futures.transform(fatherFuture, asyncExeDagFunction);
+            } else {
+                if (CollectionUtils.isEmpty(fatherFutures)) {
+                    future = executionThreadPools.submit(() -> doExecute(context));
+                } else {
+                    future = Futures.transformAsync(fatherFuture, input -> Futures.immediateFuture(doExecute(context)), executionThreadPools);
+                }
+            }
+            future.addListener(() -> monitors.forEach(monitor -> monitor.executionAfter(this, context)), monitorThreadPools);
+        }
+        return future;
+    }
+
 }
