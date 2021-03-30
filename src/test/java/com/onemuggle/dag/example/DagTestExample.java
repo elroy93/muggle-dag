@@ -92,7 +92,7 @@ public class DagTestExample {
             new NamedThreadFactory("监控线程-", false));
 
     public static List<IDagNode<Map<String, String>>> nodes = Lists.newArrayList
-            (A.class, A2.class, B.class, B2.class, C.class)
+            (A.class, A2.class, B.class, B2_Async.class, C.class)
             .stream()
             .map(clazz -> instanceClazz(clazz))
             .collect(Collectors.toList());

@@ -5,7 +5,7 @@ import com.onemuggle.dag.RelyOn;
 
 import java.util.Map;
 
-@RelyOn(value = {B.class, B2.class}, isLastNode = true)
+@RelyOn(value = {B.class, B2_Async.class}, isLastNode = true)
 public class C implements IDagNode<Map<String, String>> {
     @Override
     public String execute(Map<String, String> map) {

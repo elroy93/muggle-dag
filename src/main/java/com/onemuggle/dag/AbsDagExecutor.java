@@ -2,6 +2,7 @@ package com.onemuggle.dag;
 
 import cn.hutool.core.annotation.AnnotationUtil;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.util.StrUtil;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.Futures;
@@ -99,6 +100,10 @@ public class AbsDagExecutor<Context> implements IDagExecutor<Context> {
                                                      DagNodeProducer<Context> currentNodeProducer,
                                                      Map<DagNodeProducer<Context>, List<DagNodeProducer<Context>>> nodeFatherProducerMap) {
 
+        if (currentNodeProducer.getFuture() != null) {
+            return currentNodeProducer.getFuture();
+        }
+
         Supplier<ListenableFuture<Object>> supplier = () -> {
             List<DagNodeProducer<Context>> fatherProducers = nodeFatherProducerMap.get(currentNodeProducer);
             if (CollectionUtils.isEmpty(fatherProducers)) {
@@ -112,7 +117,6 @@ public class AbsDagExecutor<Context> implements IDagExecutor<Context> {
                         executionThreadPools);
             }
         };
-
 
         monitors.forEach(monitor -> monitor.buildFutureBefore(currentNodeProducer, context));
         ListenableFuture<Object> future = supplier.get();

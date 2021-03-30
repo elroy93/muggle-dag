@@ -48,19 +48,20 @@ public class DagNodeProducer<Context> {
 
     private ListenableFuture<Object> doGenerateFuture(Context context, boolean immediate) {
         if (requested.compareAndSet(false, true)) {
-            if (immediate) {
-                future = Futures.immediateFuture(doExecute(context));
-            } else {
-                if (isAsync) {
-                    Object obj = doExecute(context);
-                    if (obj instanceof ListenableFuture) {
-                        future = (ListenableFuture<Object>) obj;
-                    } else if (obj instanceof Future) {
-                        future = JdkFutureAdapters.listenInPoolThread((Future) obj, executionThreadPools);
-                    } else {
-                        throw new RuntimeException("异步流程操作只能回返future对象实例");
-                    }
+
+            if (isAsync) {
+                Object obj = doExecute(context);
+                if (obj instanceof ListenableFuture) {
+                    future = (ListenableFuture<Object>) obj;
+                } else if (obj instanceof Future) {
+                    future = JdkFutureAdapters.listenInPoolThread((Future) obj, executionThreadPools);
                 } else {
+                    throw new RuntimeException("异步流程操作只能回返future对象实例");
+                }
+            }else {
+                if (immediate) {
+                    future = Futures.immediateFuture(doExecute(context));
+                }else {
                     future = executionThreadPools.submit(() -> doExecute(context));
                 }
             }
