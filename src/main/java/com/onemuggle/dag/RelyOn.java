@@ -13,6 +13,8 @@ public @interface RelyOn {
      */
     boolean isLastNode() default false;
 
+    boolean isAsync() default false;
+
 
     /**
      * 依赖的节点列表

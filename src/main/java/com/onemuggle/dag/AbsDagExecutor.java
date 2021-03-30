@@ -7,8 +7,6 @@ import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import lombok.Getter;
-import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -24,7 +22,8 @@ public class AbsDagExecutor<Context> implements IDagExecutor<Context> {
     private final List<IDagNode<Context>> dagNodes;
     private IDagNode<Context> lastNode = null; // 最后一个节点
     private Map<IDagNode<Context>, List<IDagNode<Context>>> nodeFatherMap;   // 节点和父节点列表;
-    private DagMonitorFactory monitorFactory ;
+    private Map<IDagNode<Context>, Boolean> isAsyncMap;   // 节点和父节点列表;
+    private DagMonitorFactory monitorFactory;
 
     /**
      * 构造器,每个图初始化一次. 不用每次提交任务的时候都初始化.
@@ -33,7 +32,7 @@ public class AbsDagExecutor<Context> implements IDagExecutor<Context> {
      * @param executionThreadPools 执行节点的线程池
      * @param monitorThreadPools   monitor使用的线程池
      * @param dagNodes             执行节点
-     * @param monitorFactory             节点监控
+     * @param monitorFactory       节点监控
      */
     public AbsDagExecutor(ThreadPoolExecutor executionThreadPools,
                           ThreadPoolExecutor monitorThreadPools,
@@ -53,6 +52,7 @@ public class AbsDagExecutor<Context> implements IDagExecutor<Context> {
         Map<Class, IDagNode<Context>> clazzNodeMap = dagNodes.stream().collect(Collectors.toMap(Object::getClass, Function.identity()));
 
         nodeFatherMap = Maps.newHashMap();
+        isAsyncMap = Maps.newHashMap();
         // 获取注解上的依赖,寻找父节点
         for (IDagNode<Context> node : dagNodes) {
             RelyOn annotation = AnnotationUtil.getAnnotation(node.getClass(), RelyOn.class);
@@ -60,6 +60,7 @@ public class AbsDagExecutor<Context> implements IDagExecutor<Context> {
                 Assert.isNull(lastNode, "只能存在一个lastNode=" + node.getClass().getName());
                 lastNode = node;
             }
+            isAsyncMap.put(node, annotation.isAsync());
             List<IDagNode<Context>> fatherNodes = Arrays.stream(annotation.value()).map(clazzNodeMap::get).collect(Collectors.toList());
             nodeFatherMap.put(node, fatherNodes);
         }
@@ -73,7 +74,7 @@ public class AbsDagExecutor<Context> implements IDagExecutor<Context> {
         Map<IDagNode<Context>, DagNodeProducer<Context>> nodeProducerMap = Maps.newHashMap();
         for (IDagNode<Context> dagNode : dagNodes) {
             List<IDagNode<Context>> fathers = nodeFatherMap.get(dagNode);
-            nodeProducerMap.put(dagNode, new DagNodeProducer<>(dagNode, fathers, monitors, executionThreadPools, monitorThreadPools));
+            nodeProducerMap.put(dagNode, new DagNodeProducer<>(dagNode, isAsyncMap.get(dagNode), fathers, monitors, executionThreadPools, monitorThreadPools));
         }
         Map<DagNodeProducer<Context>, List<DagNodeProducer<Context>>> nodeFatherProducerMap = Maps.newHashMap();
 

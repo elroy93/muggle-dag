@@ -8,8 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-@RelyOn(value = {A.class, A2.class})
-
+@RelyOn(value = {A.class, A2.class}, isAsync = true)
 public class B2_Async implements IDagNode<Map<String, String>> {
     public static ExecutorService service = Executors.newFixedThreadPool(2);
 
