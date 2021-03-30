@@ -11,11 +11,10 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
+@Getter
 public class DagNodeProducer<Context> {
 
-    @Getter
     private final IDagNode<Context> dagNode;
-    @Getter
     private final List<IDagNode<Context>> fatherNodes;
     private final boolean isAsync;
     private final ListeningExecutorService executorService;
