@@ -12,7 +12,7 @@
 * 依赖使用注解@RelyOn标识
     * value是依赖的类,如果是第一个节点,value=[]
     * 如果是最后一个节点,@RelyOn需要注明**isLastNode=true**
-    * 如果是通过nio调用,dagNode返回的是future对象的话,**isAsync=true**可以节省线程池资源.不会使用当前线程池进行提交.
+    * 如果是通过nio调用,dagNode返回的是future对象的话,下面的节点会等待所有的结果是future的执行完成. 主要是应用在某个节点等待的上游节点都是nio的future对象的时候,只有一个节点在等待资源,而不是上游节点都在等待自己执行完成. 减少一些线程池的使用.
 
 #### Note
 
