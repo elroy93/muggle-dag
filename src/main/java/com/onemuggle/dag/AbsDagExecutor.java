@@ -26,6 +26,14 @@ public class AbsDagExecutor<Context> {
     private Map<IDagNode<Context>, Boolean> isAsyncMap; // 节点是否是非阻塞节点的标识符
     private List<? extends DagNodeMonitor<Context>> monitors;
 
+    /**
+     * 构造器,每个图初始化一次. 不用每次提交任务的时候都初始化.
+     * 如果工程只有一个图,可以使用单例模式构建.
+     *
+     * @param threadPoolExecutor    线程池
+     * @param dagNodes              涉及到的所有的节点
+     * @param monitors              监控
+     */
     public AbsDagExecutor(ThreadPoolExecutor threadPoolExecutor,
                           List<IDagNode<Context>> dagNodes,
                           List<? extends DagNodeMonitor<Context>> monitors) {
