@@ -15,36 +15,33 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+@SuppressWarnings("unchecked")
 public class DagTestExample {
+
+    public static List<IDagNode<Map<String, String>>> nodes = Lists.newArrayList
+            (A.class, A2.class, B.class, B2_Async.class, C.class)
+            .stream()
+            .map(clazz -> instanceClazz(clazz))
+            .collect(Collectors.toList());
+
 
     public static void main(String[] args) throws ExecutionException, InterruptedException {
 
-        for (int i = 0; i < 5; i++) {
-            doTest();
-            System.err.println("\n=======================================================\n");
-            Thread.sleep(1 * 1000);
-        }
-        System.exit(9);
-
-    }
-
-    private static void doTest() throws InterruptedException, ExecutionException {
-
         long start = System.currentTimeMillis();
-
         Map<String, String> ctx = new LinkedHashMap<>();
+
+        // 执行dag图
         DagResult dagResult = dagExecutor.submit(ctx);
+
         Object result = dagResult.getFuture().get();
         List<DagNodeMonitor> monitors = dagResult.getMonitors();
 
-        System.out.println(StrUtil.format("============================== \n " +
-                        "耗时: {}ms \n result : {}",
-                System.currentTimeMillis() - start, result));
-
-        System.out.println("==============================");
+        // 打印执行结果
+        System.out.println(StrUtil.format("============================== \n 耗时: {}ms \n result : {} ==============================", System.currentTimeMillis() - start, result));
         monitors.forEach(monitor -> System.out.println(((DefaultDagNodeMonitor)monitor).prettyPrint()));
-
     }
+
+
 
 
     private static IDagNode<Map<String, String>> instanceClazz(Class<? extends IDagNode> clazz) {
@@ -84,11 +81,7 @@ public class DagTestExample {
             new LinkedBlockingDeque<>(1000),
             new NamedThreadFactory("监控线程-", false));
 
-    public static List<IDagNode<Map<String, String>>> nodes = Lists.newArrayList
-            (A.class, A2.class, B.class, B2_Async.class, C.class)
-            .stream()
-            .map(clazz -> instanceClazz(clazz))
-            .collect(Collectors.toList());
+
 
     public static IDagExecutor dagExecutor = new SimpleDagExecutor<>(threadPoolExecutor, monitorThreadPoolExecutor, nodes, () -> Lists.newArrayList(new DefaultDagNodeMonitor()));
 
