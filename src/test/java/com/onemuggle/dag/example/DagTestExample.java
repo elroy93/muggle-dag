@@ -39,14 +39,18 @@ public class DagTestExample {
         Map<String, String> ctx = new LinkedHashMap<>();
 
         List<DefaultDagNodeMonitor<Map<String, String>>> monitors = Lists.newArrayList(new DefaultDagNodeMonitor());
-        
+
         ListenableFuture<Object> future = new SimpleDagExecutor<>(threadPoolExecutor, nodes, monitors).submit(ctx);
 
         Object str = future.get();
 
+
         System.out.println("============= end 耗时 " + (System.currentTimeMillis() - start) + " ms  ============ ");
         System.out.println(ctx);
         System.out.println(str);
+
+        System.out.println("==============================");
+        monitors.forEach(Object::toString);
 
         System.exit(9);
     }

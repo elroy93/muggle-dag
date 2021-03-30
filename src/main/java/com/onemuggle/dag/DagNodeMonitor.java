@@ -5,7 +5,7 @@ public interface DagNodeMonitor<Context> {
     /**
      * build节点之前
      */
-    void buildFutureBefore(DagNodeProducer<Context> producer);
+    void buildFutureBefore(DagNodeProducer<Context> producer, Context context);
 
     /**
      * build节点之后

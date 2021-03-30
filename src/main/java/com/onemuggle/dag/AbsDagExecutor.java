@@ -10,7 +10,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class AbsDagExecutor<Context> {
@@ -27,7 +30,7 @@ public class AbsDagExecutor<Context> {
                           List<IDagNode<Context>> dagNodes,
                           List<? extends DagNodeMonitor<Context>> monitors) {
         this.dagNodes = dagNodes;
-        this.monitors = monitors;
+        this.monitors = Optional.ofNullable(monitors).orElseGet(Collections::emptyList);
         executorService = MoreExecutors.listeningDecorator(threadPoolExecutor);
         init();
     }
@@ -81,22 +84,27 @@ public class AbsDagExecutor<Context> {
                                                      DagNodeProducer<Context> currentNodeProducer,
                                                      Map<DagNodeProducer<Context>, List<DagNodeProducer<Context>>> nodeFatherProducerMap) {
 
-        List<DagNodeProducer<Context>> fatherProducers = nodeFatherProducerMap.get(currentNodeProducer);
-        if (CollectionUtils.isEmpty(fatherProducers)) {
-            return currentNodeProducer.submit(context);
-        } else {
-            List<ListenableFuture<Object>> fatherFutures = fatherProducers.stream()
-                    .map(fatherProducer -> buildNodeFuture(context, fatherProducer, nodeFatherProducerMap))
-                    .collect(Collectors.toList());
-            ListenableFuture<Object> listenableFuture = Futures.allAsList((Iterable) fatherFutures);
-            ListenableFuture<Object> Object = Futures.transformAsync(listenableFuture, new AsyncFunction<Object, Object>() {
-                @Override
-                public ListenableFuture<Object> apply(@Nullable Object input) throws Exception {
-                    return currentNodeProducer.immediateFuture(context);
-                }
-            }, executorService);
-            return Object;
-        }
+        Supplier<ListenableFuture<Object>> supplier = () -> {
+            List<DagNodeProducer<Context>> fatherProducers = nodeFatherProducerMap.get(currentNodeProducer);
+            if (CollectionUtils.isEmpty(fatherProducers)) {
+                return currentNodeProducer.submit(context);
+            } else {
+                List<ListenableFuture<Object>> fatherFutures = fatherProducers.stream()
+                        .map(fatherProducer -> buildNodeFuture(context, fatherProducer, nodeFatherProducerMap))
+                        .collect(Collectors.toList());
+                return Futures.transformAsync(Futures.allAsList(fatherFutures),
+                        input -> currentNodeProducer.immediateFuture(context),
+                        executorService);
+            }
+        };
+
+        Consumer<BiConsumer<DagNodeProducer<Context>, Context>> monitorConsumer = fc -> fc.accept(currentNodeProducer, context);
+
+        monitors.forEach(monitor -> monitorConsumer.accept(monitor::buildFutureBefore));
+        ListenableFuture<Object> future = supplier.get();
+        monitors.forEach(monitor -> monitorConsumer.accept(monitor::buildFutureBefore));
+
+        return future;
     }
 
 

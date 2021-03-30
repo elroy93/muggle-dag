@@ -14,7 +14,7 @@ public class DefaultDagNodeMonitor<Context> implements DagNodeMonitor<Context>{
     private Map<DagNodeProducer, DefaultMonitorData> monitorDataMap = new LinkedHashMap<>();
 
     @Override
-    public void buildFutureBefore(DagNodeProducer<Context> producer) {
+    public void buildFutureBefore(DagNodeProducer<Context> producer, Context context) {
         DefaultMonitorData monitor = getMonitor(producer);
         monitor.setBuildFutureStartTime(System.currentTimeMillis());
     }
