@@ -1,6 +1,7 @@
 package com.onemuggle.dag.example;
 
 import cn.hutool.core.thread.NamedThreadFactory;
+import cn.hutool.core.util.StrUtil;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.onemuggle.dag.DefaultDagNodeMonitor;
@@ -17,6 +18,63 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class DagTestExample {
+
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
+
+        long start = System.currentTimeMillis();
+
+        Map<String, String> ctx = new LinkedHashMap<>();
+        ListenableFuture<Object> future = simpleDagExecutor.submit(ctx);
+        Object result = future.get();
+
+        System.out.println(StrUtil.format("============================== \n " +
+                        "耗时: {}ms \n result : {}",
+                System.currentTimeMillis() - start, result));
+
+        System.out.println("==============================");
+        monitors.forEach(monitor -> System.out.println(monitor.prettyPrint()));
+
+        System.exit(9);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private static IDagNode<Map<String, String>> instanceClazz(Class<? extends IDagNode> clazz) {
+        try {
+            return clazz.newInstance();
+        } catch (InstantiationException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
     public static List<DefaultDagNodeMonitor<Map<String, String>>> monitors = Lists.newArrayList(new DefaultDagNodeMonitor());
 
     public static ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(50,
@@ -41,38 +99,6 @@ public class DagTestExample {
     public static SimpleDagExecutor simpleDagExecutor = new SimpleDagExecutor<>(threadPoolExecutor, monitorThreadPoolExecutor, nodes, monitors);
 
 
-    public static void main(String[] args) throws ExecutionException, InterruptedException {
-
-        long start = System.currentTimeMillis();
-
-
-        Map<String, String> ctx = new LinkedHashMap<>();
-
-
-        ListenableFuture<Object> future = simpleDagExecutor.submit(ctx);
-
-        Object str = future.get();
-
-
-        System.out.println("============= end 耗时 " + (System.currentTimeMillis() - start) + " ms  ============ ");
-        System.out.println(str);
-
-        System.out.println("==============================");
-        monitors.forEach(monitor -> System.out.println(monitor.prettyPrint()));
-
-        System.exit(9);
-    }
-
-    private static IDagNode<Map<String, String>> instanceClazz(Class<? extends IDagNode> clazz) {
-        try {
-            return clazz.newInstance();
-        } catch (InstantiationException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
 
 
 }

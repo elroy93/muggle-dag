@@ -10,7 +10,7 @@ public class B implements IDagNode<Map<String, String>> {
     @Override
     public String execute(Map<String, String> map) {
         map.put("B", "B");
-        System.out.println(System.currentTimeMillis() + " " + Thread.currentThread().getName() + " == exe == B [A 3]");
+        System.out.println(System.currentTimeMillis() + " " + Thread.currentThread().getName() + " == exe == B");
 
         try {
             Thread.sleep(3 * 1000);

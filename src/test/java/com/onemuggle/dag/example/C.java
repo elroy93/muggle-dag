@@ -11,7 +11,7 @@ public class C implements IDagNode<Map<String, String>> {
     public String execute(Map<String, String> map) {
         map.put("C", "C");
 
-        System.out.println(System.currentTimeMillis() + " " + Thread.currentThread().getName() + " == exe == C [B,B2 1]");
+        System.out.println(System.currentTimeMillis() + " " + Thread.currentThread().getName() + " == exe == C");
 
         try {
             Thread.sleep(1 * 1000);
