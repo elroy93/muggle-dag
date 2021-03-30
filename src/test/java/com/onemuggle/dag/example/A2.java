@@ -17,6 +17,8 @@ public class A2 implements IDagNode<Map<String, String>> {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        System.out.println(System.currentTimeMillis() + " " + Thread.currentThread().getName() + " == 结束 == A2");
+
         return "A2";
     }
 }

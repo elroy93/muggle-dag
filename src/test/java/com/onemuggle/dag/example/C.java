@@ -18,6 +18,8 @@ public class C implements IDagNode<Map<String, String>> {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        System.out.println(System.currentTimeMillis() + " " + Thread.currentThread().getName() + " == 结束 == C");
         return "C";
     }
 }

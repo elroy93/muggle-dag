@@ -20,6 +20,8 @@ public class B2_Async implements IDagNode<Map<String, String>> {
         Future<?> future = service.submit(() -> {
             try {
                 Thread.sleep(3 * 1000);
+                System.out.println(System.currentTimeMillis() + " " + Thread.currentThread().getName() + " == 结束 == B2_Async");
+
             } catch (InterruptedException e) {
                 System.out.println(System.currentTimeMillis() + " " + Thread.currentThread().getName() + " == 异常 == B2_Async");
 
