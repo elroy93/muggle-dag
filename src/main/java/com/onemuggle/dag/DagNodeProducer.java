@@ -19,7 +19,6 @@ public class DagNodeProducer<Context> {
 
     private final IDagNode<Context> dagNode;
     private final List<IDagNode<Context>> fatherNodes;
-    private final boolean isAsync;
     private final ListeningExecutorService executionThreadPools;
     private final ListeningExecutorService monitorThreadPools;
     private final AtomicBoolean requested = new AtomicBoolean(false);
@@ -29,13 +28,11 @@ public class DagNodeProducer<Context> {
 
     public DagNodeProducer(IDagNode<Context> dagNode,
                            List<IDagNode<Context>> fatherNodes,
-                           boolean isAsync,
                            List<? extends DagNodeMonitor<Context>> monitors,
                            ListeningExecutorService executionThreadPools,
                            ListeningExecutorService monitorThreadPools) {
         this.dagNode = dagNode;
         this.fatherNodes = fatherNodes;
-        this.isAsync = isAsync;
         this.executionThreadPools = executionThreadPools;
         this.monitorThreadPools = monitorThreadPools;
         this.monitors = monitors;

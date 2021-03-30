@@ -23,7 +23,6 @@ public class AbsDagExecutor<Context> implements IDagExecutor<Context> {
     private final List<IDagNode<Context>> dagNodes;
     private IDagNode<Context> lastNode = null; // 最后一个节点
     private Map<IDagNode<Context>, List<IDagNode<Context>>> nodeFatherMap;   // 节点和父节点列表;
-    private Map<IDagNode<Context>, Boolean> isAsyncMap; // 节点是否是非阻塞节点的标识符
     private List<? extends DagNodeMonitor<Context>> monitors;
 
     /**
@@ -53,7 +52,6 @@ public class AbsDagExecutor<Context> implements IDagExecutor<Context> {
         Map<Class, IDagNode<Context>> clazzNodeMap = dagNodes.stream().collect(Collectors.toMap(Object::getClass, Function.identity()));
 
         nodeFatherMap = Maps.newHashMap();
-        isAsyncMap = Maps.newHashMap();
         // 获取注解上的依赖,寻找父节点
         for (IDagNode<Context> node : dagNodes) {
             RelyOn annotation = AnnotationUtil.getAnnotation(node.getClass(), RelyOn.class);
@@ -61,7 +59,6 @@ public class AbsDagExecutor<Context> implements IDagExecutor<Context> {
                 Assert.isNull(lastNode, "只能存在一个lastNode=" + node.getClass().getName());
                 lastNode = node;
             }
-            isAsyncMap.put(node, annotation.isAync());
             List<IDagNode<Context>> fatherNodes = Arrays.stream(annotation.value()).map(clazzNodeMap::get).collect(Collectors.toList());
             nodeFatherMap.put(node, fatherNodes);
         }
@@ -74,8 +71,7 @@ public class AbsDagExecutor<Context> implements IDagExecutor<Context> {
         Map<IDagNode<Context>, DagNodeProducer<Context>> nodeProducerMap = Maps.newHashMap();
         for (IDagNode<Context> dagNode : dagNodes) {
             List<IDagNode<Context>> fathers = nodeFatherMap.get(dagNode);
-            Boolean isAsync = isAsyncMap.get(dagNode);
-            nodeProducerMap.put(dagNode, new DagNodeProducer<>(dagNode, fathers, isAsync, monitors, executionThreadPools, monitorThreadPools));
+            nodeProducerMap.put(dagNode, new DagNodeProducer<>(dagNode, fathers, monitors, executionThreadPools, monitorThreadPools));
         }
         Map<DagNodeProducer<Context>, List<DagNodeProducer<Context>>> nodeFatherProducerMap = Maps.newHashMap();
 
