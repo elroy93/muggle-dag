@@ -14,13 +14,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class DagNodeProducer<Context> {
 
     @Getter
-    private IDagNode<Context> dagNode;
+    private final IDagNode<Context> dagNode;
     @Getter
-    private List<IDagNode<Context>> fatherNodes;
-    private boolean isAsync;
-    private ListeningExecutorService executorService;
-    private AtomicBoolean requested = new AtomicBoolean(false);
-    List<? extends DagNodeMonitor<Context>> monitors;
+    private final List<IDagNode<Context>> fatherNodes;
+    private final boolean isAsync;
+    private final ListeningExecutorService executorService;
+    private final AtomicBoolean requested = new AtomicBoolean(false);
+    private final List<? extends DagNodeMonitor<Context>> monitors;
     private ListenableFuture<Object> future;
 
 
