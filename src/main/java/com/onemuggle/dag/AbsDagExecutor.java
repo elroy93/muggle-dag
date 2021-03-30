@@ -104,14 +104,10 @@ public class AbsDagExecutor<Context> implements IDagExecutor<Context> {
 
         Supplier<ListenableFuture<Object>> supplier = () -> {
             List<DagNodeProducer<Context>> fatherProducers = nodeFatherProducerMap.get(currentNodeProducer);
-            if (CollectionUtils.isEmpty(fatherProducers)) {
-                return currentNodeProducer.submit(context);
-            } else {
-                List<ListenableFuture<Object>> fatherFutures = fatherProducers.stream()
-                        .map(fatherProducer -> buildNodeFuture(context, fatherProducer, nodeFatherProducerMap))
-                        .collect(Collectors.toList());
-                return currentNodeProducer.submit(fatherFutures, context);
-            }
+            List<ListenableFuture<Object>> fatherFutures = fatherProducers.stream()
+                    .map(fatherProducer -> buildNodeFuture(context, fatherProducer, nodeFatherProducerMap))
+                    .collect(Collectors.toList());
+            return currentNodeProducer.submit(fatherFutures, context);
         };
 
         monitors.forEach(monitor -> monitor.buildFutureBefore(currentNodeProducer, context));
