@@ -87,7 +87,7 @@ public class AbsDagExecutor<Context> {
             ListenableFuture<Object> Object = Futures.transformAsync(listenableFuture, new AsyncFunction<Object, Object>() {
                 @Override
                 public ListenableFuture<Object> apply(@Nullable Object input) throws Exception {
-                    return Futures.immediateFuture(currentNodeProducer.execute(context));
+                    return currentNodeProducer.immediateFuture(context);
                 }
             }, executorService);
             return Object;

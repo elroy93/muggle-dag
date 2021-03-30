@@ -30,24 +30,37 @@ public class DagNodeProducer<Context> {
     }
 
     public ListenableFuture<Object> submit(Context context){
+        return doGenerateFuture(context, false);
+    }
+
+    public ListenableFuture<Object> immediateFuture(Context context){
+        return doGenerateFuture(context, true);
+    }
+
+    private ListenableFuture<Object> doGenerateFuture(Context context,boolean immediate){
         if (requested.compareAndSet(false, true)) {
-            if (isAsync) {
-                Object obj = execute(context);
-                if (obj instanceof ListenableFuture) {
-                    return (ListenableFuture<Object>) obj;
-                } else if (obj instanceof Future) {
-                    return JdkFutureAdapters.listenInPoolThread((Future)obj, executorService);
-                }else {
-                    throw new RuntimeException("异步流程操作只能回返future对象实例");
-                }
+            if (immediate) {
+                future = Futures.immediateFuture(doExecute(context));
             }else {
-                return executorService.submit(() -> execute(context));
+                if (isAsync) {
+                    Object obj = doExecute(context);
+                    if (obj instanceof ListenableFuture) {
+                        future = (ListenableFuture<Object>) obj;
+                    } else if (obj instanceof Future) {
+                        future =  JdkFutureAdapters.listenInPoolThread((Future)obj, executorService);
+                    }else {
+                        throw new RuntimeException("异步流程操作只能回返future对象实例");
+                    }
+                }else {
+                    future = executorService.submit(() -> doExecute(context));
+                }
             }
         }
         return future;
     }
 
-    public Object execute(Context context){
+
+    private Object doExecute(Context context){
         return dagNode.execute(context);
     }
 }
