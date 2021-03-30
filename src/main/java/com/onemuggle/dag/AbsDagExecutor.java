@@ -98,11 +98,10 @@ public class AbsDagExecutor<Context> {
             }
         };
 
-        Consumer<BiConsumer<DagNodeProducer<Context>, Context>> monitorConsumer = fc -> fc.accept(currentNodeProducer, context);
 
-        monitors.forEach(monitor -> monitorConsumer.accept(monitor::buildFutureBefore));
+        monitors.forEach(monitor -> monitor.buildFutureBefore(currentNodeProducer, context));
         ListenableFuture<Object> future = supplier.get();
-        monitors.forEach(monitor -> monitorConsumer.accept(monitor::buildFutureBefore));
+        monitors.forEach(monitor -> monitor.buildFutureAfter(currentNodeProducer, context));
 
         return future;
     }

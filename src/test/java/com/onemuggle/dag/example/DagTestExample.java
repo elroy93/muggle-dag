@@ -50,7 +50,7 @@ public class DagTestExample {
         System.out.println(str);
 
         System.out.println("==============================");
-        monitors.forEach(Object::toString);
+        monitors.forEach(monitor -> System.out.println(monitor.prettyPrint()));
 
         System.exit(9);
     }
