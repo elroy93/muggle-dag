@@ -26,8 +26,6 @@ public class DagNodeProducer<Context> {
     private final List<? extends DagNodeMonitor<Context>> monitors;
     private ListenableFuture<Object> future;
 
-    private LinkedList<ListenableFuture<Object>> asyncResultList = new LinkedList<>();
-
 
     public DagNodeProducer(IDagNode<Context> dagNode,
                            List<IDagNode<Context>> fatherNodes,
