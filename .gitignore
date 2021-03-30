@@ -1,0 +1,7 @@
+.idea
+.gradle
+logs
+build
+out/
+http
+*.DS_Store
