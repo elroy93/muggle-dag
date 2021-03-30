@@ -22,10 +22,10 @@ public class DagNodeProducer<Context> {
     private AtomicBoolean requested = new AtomicBoolean(false);
     private ListenableFuture<Object> future;
 
-    public DagNodeProducer(IDagNode<Context> dagNode, List<IDagNode<Context>> fatherNodes, boolean isNotBlocking, ListeningExecutorService executorService) {
+    public DagNodeProducer(IDagNode<Context> dagNode, List<IDagNode<Context>> fatherNodes, boolean isAsync, ListeningExecutorService executorService) {
         this.dagNode = dagNode;
         this.fatherNodes = fatherNodes;
-        this.isAsync = isNotBlocking;
+        this.isAsync = isAsync;
         this.executorService = executorService;
     }
 
