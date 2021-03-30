@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.onemuggle.dag.DefaultDagNodeMonitor;
+import com.onemuggle.dag.IDagExecutor;
 import com.onemuggle.dag.IDagNode;
 import com.onemuggle.dag.SimpleDagExecutor;
 
@@ -24,7 +25,7 @@ public class DagTestExample {
         long start = System.currentTimeMillis();
 
         Map<String, String> ctx = new LinkedHashMap<>();
-        ListenableFuture<Object> future = simpleDagExecutor.submit(ctx);
+        ListenableFuture<Object> future = dagExecutor.submit(ctx);
         Object result = future.get();
 
         System.out.println(StrUtil.format("============================== \n " +
@@ -96,7 +97,7 @@ public class DagTestExample {
             .map(clazz -> instanceClazz(clazz))
             .collect(Collectors.toList());
 
-    public static SimpleDagExecutor simpleDagExecutor = new SimpleDagExecutor<>(threadPoolExecutor, monitorThreadPoolExecutor, nodes, monitors);
+    public static IDagExecutor dagExecutor = new SimpleDagExecutor<>(threadPoolExecutor, monitorThreadPoolExecutor, nodes, monitors);
 
 
 

@@ -16,7 +16,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class AbsDagExecutor<Context> {
+public class AbsDagExecutor<Context> implements IDagExecutor<Context> {
 
     // 初始化数据
     private final ListeningExecutorService executionThreadPools;
@@ -31,9 +31,10 @@ public class AbsDagExecutor<Context> {
      * 构造器,每个图初始化一次. 不用每次提交任务的时候都初始化.
      * 如果工程只有一个图,可以使用单例模式构建.
      *
-     * @param threadPoolExecutor 线程池
-     * @param dagNodes           涉及到的所有的节点
-     * @param monitors           监控
+     * @param executionThreadPools      执行节点的线程池
+     * @param monitorThreadPools        monitor使用的线程池
+     * @param dagNodes                  执行节点
+     * @param monitors                  节点监控
      */
     public AbsDagExecutor(ThreadPoolExecutor executionThreadPools,
                           ThreadPoolExecutor monitorThreadPools,
@@ -46,6 +47,9 @@ public class AbsDagExecutor<Context> {
         init();
     }
 
+    /**
+     * 初始化一个dag图
+     */
     private void init() {
         Map<Class, IDagNode<Context>> clazzNodeMap = dagNodes.stream().collect(Collectors.toMap(Object::getClass, Function.identity()));
 
@@ -65,7 +69,7 @@ public class AbsDagExecutor<Context> {
 
     }
 
-
+    @Override
     public ListenableFuture<Object> submit(Context context) {
         // 生成producer
         Map<IDagNode<Context>, DagNodeProducer<Context>> nodeProducerMap = Maps.newHashMap();
