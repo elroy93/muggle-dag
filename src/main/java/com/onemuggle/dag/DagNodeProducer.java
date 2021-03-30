@@ -8,7 +8,6 @@ import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Future;
@@ -53,11 +52,13 @@ public class DagNodeProducer<Context> {
             } else {
                 future = Futures.transformAsync(fatherFuture, inputs -> {
                     for (Object input : inputs) {
-                        if (input instanceof Future) {
-                            ListenableFuture fatherResultFuture = JdkFutureAdapters.listenInPoolThread((Future) input, executionThreadPools);
+                        if (input instanceof AsyncPair) {
+                            Object futureResult = ((AsyncPair) input).getObject();
+                            DagNodeProducer producer = ((AsyncPair) input).getProducer();
+                            ListenableFuture fatherResultFuture = JdkFutureAdapters.listenInPoolThread((Future) futureResult, executionThreadPools);
                             fatherResultFuture.addListener(() -> monitors.forEach(monitor -> {
-                                // TODO 这个地方应该是上一个节点 而不是this
-                                 monitor.executionAfter(this, context);
+                                // 这个地方应该是上一个节点 而不是this
+                                 monitor.executionAfter(producer, context);
                             }), monitorThreadPools);
                             fatherResultFuture.get();
                         }
@@ -67,6 +68,9 @@ public class DagNodeProducer<Context> {
             }
             if (!isAsync) {
                 future.addListener(() -> monitors.forEach(monitor -> monitor.executionAfter(this, context)), monitorThreadPools);
+            }else {
+                // 如果是异步的,针对返回结果转一下
+                future = Futures.transform(future, input -> AsyncPair.of(this, input));
             }
         }
         return future;
@@ -77,5 +81,20 @@ public class DagNodeProducer<Context> {
         return dagNode.execute(context);
     }
 
+
+    @Getter
+    static class AsyncPair {
+        private DagNodeProducer producer;
+        private Object object;
+
+        public static AsyncPair of(DagNodeProducer producer, Object obj){
+            return new AsyncPair(producer, obj);
+        }
+
+        public AsyncPair(DagNodeProducer producer, Object object) {
+            this.producer = producer;
+            this.object = object;
+        }
+    }
 
 }
