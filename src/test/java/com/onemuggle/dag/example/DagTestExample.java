@@ -46,7 +46,6 @@ public class DagTestExample {
 
 
         System.out.println("============= end 耗时 " + (System.currentTimeMillis() - start) + " ms  ============ ");
-        System.out.println(ctx);
         System.out.println(str);
 
         System.out.println("==============================");
