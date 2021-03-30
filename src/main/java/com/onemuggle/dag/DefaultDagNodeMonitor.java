@@ -7,31 +7,31 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class DefaultDagNodeMonitor<Context> implements DagNodeMonitor<Context> {
+public class DefaultDagNodeMonitor implements DagNodeMonitor {
 
     @Getter
     private Map<DagNodeProducer, DefaultMonitorData> monitorDataMap = new LinkedHashMap<>();
 
     @Override
-    public void buildFutureBefore(DagNodeProducer<Context> producer, Context context) {
+    public void buildFutureBefore(DagNodeProducer producer, Object context) {
         DefaultMonitorData monitor = getMonitor(producer);
         monitor.setBuildFutureStartTime(System.currentTimeMillis());
     }
 
     @Override
-    public void buildFutureAfter(DagNodeProducer<Context> producer, Context context) {
+    public void buildFutureAfter(DagNodeProducer producer, Object context) {
         DefaultMonitorData monitor = getMonitor(producer);
         monitor.setBuildFutureEndTime(System.currentTimeMillis());
     }
 
     @Override
-    public void executionBefore(DagNodeProducer<Context> producer, Context context) {
+    public void executionBefore(DagNodeProducer producer, Object context) {
         DefaultMonitorData monitor = getMonitor(producer);
         monitor.setExecutionStartTime(System.currentTimeMillis());
     }
 
     @Override
-    public void executionAfter(DagNodeProducer<Context> producer, Context context) {
+    public void executionAfter(DagNodeProducer producer, Object context) {
         DefaultMonitorData monitor = getMonitor(producer);
         monitor.setExecutionEndTime(System.currentTimeMillis());
     }

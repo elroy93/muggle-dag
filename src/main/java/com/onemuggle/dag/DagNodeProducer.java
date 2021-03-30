@@ -22,13 +22,13 @@ public class DagNodeProducer<Context> {
     private final ListeningExecutorService executionThreadPools;
     private final ListeningExecutorService monitorThreadPools;
     private final AtomicBoolean requested = new AtomicBoolean(false);
-    private final List<? extends DagNodeMonitor<Context>> monitors;
+    private final List<? extends DagNodeMonitor> monitors;
     private ListenableFuture<Object> future;
 
 
     public DagNodeProducer(IDagNode<Context> dagNode,
                            List<IDagNode<Context>> fatherNodes,
-                           List<? extends DagNodeMonitor<Context>> monitors,
+                           List<? extends DagNodeMonitor> monitors,
                            ListeningExecutorService executionThreadPools,
                            ListeningExecutorService monitorThreadPools) {
         this.dagNode = dagNode;

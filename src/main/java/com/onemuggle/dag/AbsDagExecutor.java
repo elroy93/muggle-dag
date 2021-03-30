@@ -7,6 +7,7 @@ import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import lombok.Getter;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.*;
@@ -23,7 +24,7 @@ public class AbsDagExecutor<Context> implements IDagExecutor<Context> {
     private final List<IDagNode<Context>> dagNodes;
     private IDagNode<Context> lastNode = null; // 最后一个节点
     private Map<IDagNode<Context>, List<IDagNode<Context>>> nodeFatherMap;   // 节点和父节点列表;
-    private List<? extends DagNodeMonitor<Context>> monitors;
+    private DagMonitorFactory monitorFactory ;
 
     /**
      * 构造器,每个图初始化一次. 不用每次提交任务的时候都初始化.
@@ -32,14 +33,14 @@ public class AbsDagExecutor<Context> implements IDagExecutor<Context> {
      * @param executionThreadPools 执行节点的线程池
      * @param monitorThreadPools   monitor使用的线程池
      * @param dagNodes             执行节点
-     * @param monitors             节点监控
+     * @param monitorFactory             节点监控
      */
     public AbsDagExecutor(ThreadPoolExecutor executionThreadPools,
                           ThreadPoolExecutor monitorThreadPools,
                           List<IDagNode<Context>> dagNodes,
-                          List<? extends DagNodeMonitor<Context>> monitors) {
+                          DagMonitorFactory monitorFactory) {
         this.dagNodes = dagNodes;
-        this.monitors = Optional.ofNullable(monitors).orElseGet(Collections::emptyList);
+        this.monitorFactory = Optional.ofNullable(monitorFactory).orElse(() -> Lists.newArrayList(new DefaultDagNodeMonitor()));
         this.executionThreadPools = MoreExecutors.listeningDecorator(executionThreadPools);
         this.monitorThreadPools = MoreExecutors.listeningDecorator(monitorThreadPools);
         init();
@@ -66,7 +67,8 @@ public class AbsDagExecutor<Context> implements IDagExecutor<Context> {
     }
 
     @Override
-    public ListenableFuture<Object> submit(Context context) {
+    public DagResult submit(Context context) {
+        List<DagNodeMonitor> monitors = monitorFactory.getMonitors();
         // 生成producer
         Map<IDagNode<Context>, DagNodeProducer<Context>> nodeProducerMap = Maps.newHashMap();
         for (IDagNode<Context> dagNode : dagNodes) {
@@ -87,10 +89,12 @@ public class AbsDagExecutor<Context> implements IDagExecutor<Context> {
         DagNodeProducer<Context> lastNodeProducer = nodeProducerMap.get(lastNode);
 
         // 构建dag图,并提交
-        return buildNodeFuture(context, lastNodeProducer, nodeFatherProducerMap);
+        ListenableFuture<Object> future = buildNodeFuture(context, monitors, lastNodeProducer, nodeFatherProducerMap);
+        return DagResult.builder().future(future).monitors(monitors).build();
     }
 
     private ListenableFuture<Object> buildNodeFuture(Context context,
+                                                     List<DagNodeMonitor> monitors,
                                                      DagNodeProducer<Context> currentNodeProducer,
                                                      Map<DagNodeProducer<Context>, List<DagNodeProducer<Context>>> nodeFatherProducerMap) {
 
@@ -101,7 +105,7 @@ public class AbsDagExecutor<Context> implements IDagExecutor<Context> {
         Supplier<ListenableFuture<Object>> supplier = () -> {
             List<DagNodeProducer<Context>> fatherProducers = nodeFatherProducerMap.get(currentNodeProducer);
             List<ListenableFuture<Object>> fatherFutures = fatherProducers.stream()
-                    .map(fatherProducer -> buildNodeFuture(context, fatherProducer, nodeFatherProducerMap))
+                    .map(fatherProducer -> buildNodeFuture(context, monitors, fatherProducer, nodeFatherProducerMap))
                     .collect(Collectors.toList());
             return currentNodeProducer.submit(fatherFutures, context);
         };
