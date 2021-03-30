@@ -4,14 +4,14 @@ import cn.hutool.core.annotation.AnnotationUtil;
 import cn.hutool.core.lang.Assert;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.util.concurrent.*;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import org.apache.commons.collections4.CollectionUtils;
 
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -19,7 +19,8 @@ import java.util.stream.Collectors;
 public class AbsDagExecutor<Context> {
 
     // 初始化数据
-    private final ListeningExecutorService executorService;
+    private final ListeningExecutorService executionThreadPools;
+    private final ListeningExecutorService monitorThreadPools;
     private final List<IDagNode<Context>> dagNodes;
     private IDagNode<Context> lastNode = null; // 最后一个节点
     private Map<IDagNode<Context>, List<IDagNode<Context>>> nodeFatherMap;   // 节点和父节点列表;
@@ -30,16 +31,18 @@ public class AbsDagExecutor<Context> {
      * 构造器,每个图初始化一次. 不用每次提交任务的时候都初始化.
      * 如果工程只有一个图,可以使用单例模式构建.
      *
-     * @param threadPoolExecutor    线程池
-     * @param dagNodes              涉及到的所有的节点
-     * @param monitors              监控
+     * @param threadPoolExecutor 线程池
+     * @param dagNodes           涉及到的所有的节点
+     * @param monitors           监控
      */
-    public AbsDagExecutor(ThreadPoolExecutor threadPoolExecutor,
+    public AbsDagExecutor(ThreadPoolExecutor executionThreadPools,
+                          ThreadPoolExecutor monitorThreadPools,
                           List<IDagNode<Context>> dagNodes,
                           List<? extends DagNodeMonitor<Context>> monitors) {
         this.dagNodes = dagNodes;
         this.monitors = Optional.ofNullable(monitors).orElseGet(Collections::emptyList);
-        executorService = MoreExecutors.listeningDecorator(threadPoolExecutor);
+        this.executionThreadPools = MoreExecutors.listeningDecorator(executionThreadPools);
+        this.monitorThreadPools = MoreExecutors.listeningDecorator(monitorThreadPools);
         init();
     }
 
@@ -69,7 +72,7 @@ public class AbsDagExecutor<Context> {
         for (IDagNode<Context> dagNode : dagNodes) {
             List<IDagNode<Context>> fathers = nodeFatherMap.get(dagNode);
             Boolean isAsync = isAsyncMap.get(dagNode);
-            nodeProducerMap.put(dagNode, new DagNodeProducer<>(dagNode, fathers, isAsync, executorService, monitors));
+            nodeProducerMap.put(dagNode, new DagNodeProducer<>(dagNode, fathers, isAsync, monitors, executionThreadPools, monitorThreadPools));
         }
         Map<DagNodeProducer<Context>, List<DagNodeProducer<Context>>> nodeFatherProducerMap = Maps.newHashMap();
 
@@ -102,7 +105,7 @@ public class AbsDagExecutor<Context> {
                         .collect(Collectors.toList());
                 return Futures.transformAsync(Futures.allAsList(fatherFutures),
                         input -> currentNodeProducer.immediateFuture(context),
-                        executorService);
+                        executionThreadPools);
             }
         };
 

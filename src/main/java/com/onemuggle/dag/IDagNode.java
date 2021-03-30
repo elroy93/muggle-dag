@@ -7,8 +7,9 @@ public interface IDagNode<Context> {
 
     /**
      * 执行dag节点
-     * @param context   上下文
-     * @return          success/fail
+     *
+     * @param context 上下文
+     * @return success/fail
      */
     Object execute(Context context);
 }

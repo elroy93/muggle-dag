@@ -1,6 +1,5 @@
 package com.onemuggle.dag;
 
-import cn.hutool.core.util.StrUtil;
 import lombok.Data;
 import lombok.Getter;
 
@@ -8,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class DefaultDagNodeMonitor<Context> implements DagNodeMonitor<Context>{
+public class DefaultDagNodeMonitor<Context> implements DagNodeMonitor<Context> {
 
     @Getter
     private Map<DagNodeProducer, DefaultMonitorData> monitorDataMap = new LinkedHashMap<>();
@@ -39,13 +38,14 @@ public class DefaultDagNodeMonitor<Context> implements DagNodeMonitor<Context>{
 
     /**
      * 打印依赖关系
+     *
      * @return
      */
-    public String prettyPrint(){
+    public String prettyPrint() {
         StringBuilder sb = new StringBuilder("");
         String tmpl = "%-8s\t\t%-8s\t\t%-8s\n";
         sb.append(String.format(tmpl, "节点名称", "执行耗时(ms)", "父节点"));
-        monitorDataMap.forEach((producer,monitorData) ->{
+        monitorDataMap.forEach((producer, monitorData) -> {
             sb.append(String.format(tmpl, producer.getDagNode().getClass().getSimpleName(),
                     monitorData.getExecutionEndTime() - monitorData.getExecutionStartTime(),
                     producer.getFatherNodes().stream().map(Object::getClass).map(clazz -> ((Class<?>) clazz).getSimpleName()).collect(Collectors.toList())
@@ -53,7 +53,6 @@ public class DefaultDagNodeMonitor<Context> implements DagNodeMonitor<Context>{
         });
         return sb.toString();
     }
-
 
 
     @Data

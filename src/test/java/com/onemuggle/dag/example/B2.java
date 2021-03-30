@@ -9,9 +9,9 @@ import java.util.Map;
 
 public class B2 implements IDagNode<Map<String, String>> {
     @Override
-    public String execute(Map<String, String> map)  {
+    public String execute(Map<String, String> map) {
         map.put("B2", "B2");
-        System.out.println(System.currentTimeMillis() + " "+Thread.currentThread().getName()  + " == exe == B2 [A A2 4]");
+        System.out.println(System.currentTimeMillis() + " " + Thread.currentThread().getName() + " == exe == B2 [A A2 4]");
 
         try {
             Thread.sleep(4 * 1000);
