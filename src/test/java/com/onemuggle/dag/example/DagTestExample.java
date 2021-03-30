@@ -39,6 +39,8 @@ public class DagTestExample {
         // 打印执行结果
         System.out.println(StrUtil.format("============================== \n 耗时: {}ms \n result : {} \n==============================\n", System.currentTimeMillis() - start, result));
         monitors.forEach(monitor -> System.out.println(((DefaultDagNodeMonitor)monitor).prettyPrint()));
+
+        System.exit(9);
     }
 
 
