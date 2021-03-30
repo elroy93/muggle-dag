@@ -83,13 +83,13 @@ public class DagTestExample {
             5,
             TimeUnit.MINUTES,
             new LinkedBlockingDeque<>(1000),
-            new NamedThreadFactory("修然", false));
+            new NamedThreadFactory("执行线程", false));
     public static ThreadPoolExecutor monitorThreadPoolExecutor = new ThreadPoolExecutor(1,
             1,
             5,
             TimeUnit.MINUTES,
             new LinkedBlockingDeque<>(1000),
-            new NamedThreadFactory("修然", false));
+            new NamedThreadFactory("监控线程-", false));
 
     public static List<IDagNode<Map<String, String>>> nodes = Lists.newArrayList
             (A.class, A2.class, B.class, B2.class, C.class)
