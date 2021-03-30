@@ -43,8 +43,8 @@ public class DefaultDagNodeMonitor<Context> implements DagNodeMonitor<Context>{
      */
     public String prettyPrint(){
         StringBuilder sb = new StringBuilder("");
-        sb.append("节点名称 \t 执行耗时(ms) \t 父节点 \n");
         String tmpl = "%-8s\t\t%-8s\t\t%-8s\n";
+        sb.append(String.format(tmpl, "节点名称", "执行耗时(ms)", "父节点"));
         monitorDataMap.forEach((producer,monitorData) ->{
             sb.append(String.format(tmpl, producer.getDagNode().getClass().getSimpleName(),
                     monitorData.getExecutionEndTime() - monitorData.getExecutionStartTime(),

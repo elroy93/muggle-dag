@@ -68,6 +68,9 @@ public class DagNodeProducer<Context> {
 
 
     private Object doExecute(Context context){
-        return dagNode.execute(context);
+        monitors.forEach(monitor -> monitor.executionBefore(this, context));
+        Object result = dagNode.execute(context);
+        monitors.forEach(monitor -> monitor.executionAfter(this, context));
+        return result;
     }
 }
