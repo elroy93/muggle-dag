@@ -63,14 +63,15 @@ public class DagNodeProducer<Context> {
                 }
             }
         }
+        // 添加listener,这个future执行完成之后调用executionAfter,而不是在doExecute中.
+        // 因为doExecute可能会返回一个future对象.
+        future.addListener(() -> monitors.forEach(monitor -> monitor.executionAfter(this, context)), executorService);
         return future;
     }
 
 
     private Object doExecute(Context context){
         monitors.forEach(monitor -> monitor.executionBefore(this, context));
-        Object result = dagNode.execute(context);
-        monitors.forEach(monitor -> monitor.executionAfter(this, context));
-        return result;
+        return  dagNode.execute(context);
     }
 }
