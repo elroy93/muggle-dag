@@ -15,14 +15,19 @@ import java.util.stream.Collectors;
 
 public class AbsDagExecutor<Context> {
 
+    // 初始化数据
     private final ListeningExecutorService executorService;
     private final List<IDagNode<Context>> dagNodes;
     private IDagNode<Context> lastNode = null; // 最后一个节点
     private Map<IDagNode<Context>, List<IDagNode<Context>>> nodeFatherMap;   // 节点和父节点列表;
-    private Map<IDagNode<Context>,Boolean> isAsyncMap; // 节点是否是非阻塞节点的标识符
+    private Map<IDagNode<Context>, Boolean> isAsyncMap; // 节点是否是非阻塞节点的标识符
+    private List<? extends DagNodeMonitor<Context>> monitors;
 
-    public AbsDagExecutor(ThreadPoolExecutor threadPoolExecutor, List<IDagNode<Context>> dagNodes) {
+    public AbsDagExecutor(ThreadPoolExecutor threadPoolExecutor,
+                          List<IDagNode<Context>> dagNodes,
+                          List<? extends DagNodeMonitor<Context>> monitors) {
         this.dagNodes = dagNodes;
+        this.monitors = monitors;
         executorService = MoreExecutors.listeningDecorator(threadPoolExecutor);
         init();
     }
@@ -48,12 +53,12 @@ public class AbsDagExecutor<Context> {
 
 
     public ListenableFuture<Object> submit(Context context) {
-        // 初始化producer信息
+        // 生成producer
         Map<IDagNode<Context>, DagNodeProducer<Context>> nodeProducerMap = Maps.newHashMap();
         for (IDagNode<Context> dagNode : dagNodes) {
             List<IDagNode<Context>> fathers = nodeFatherMap.get(dagNode);
             Boolean isAsync = isAsyncMap.get(dagNode);
-            nodeProducerMap.put(dagNode, new DagNodeProducer<>(dagNode, fathers, isAsync, executorService));
+            nodeProducerMap.put(dagNode, new DagNodeProducer<>(dagNode, fathers, isAsync, executorService, monitors));
         }
         Map<DagNodeProducer<Context>, List<DagNodeProducer<Context>>> nodeFatherProducerMap = Maps.newHashMap();
 

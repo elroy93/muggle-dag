@@ -3,9 +3,11 @@ package com.onemuggle.dag.example;
 import cn.hutool.core.thread.NamedThreadFactory;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
+import com.onemuggle.dag.DefaultDagNodeMonitor;
 import com.onemuggle.dag.SimpleDagExecutor;
 import com.onemuggle.dag.IDagNode;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +37,10 @@ public class DagTestExample {
                 .collect(Collectors.toList());
 
         Map<String, String> ctx = new LinkedHashMap<>();
-        ListenableFuture<Object> future = new SimpleDagExecutor<>(threadPoolExecutor, nodes).submit(ctx);
+
+        List<DefaultDagNodeMonitor<Map<String, String>>> monitors = Lists.newArrayList(new DefaultDagNodeMonitor());
+        
+        ListenableFuture<Object> future = new SimpleDagExecutor<>(threadPoolExecutor, nodes, monitors).submit(ctx);
 
         Object str = future.get();
 

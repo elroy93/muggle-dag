@@ -20,13 +20,20 @@ public class DagNodeProducer<Context> {
     private boolean isAsync;
     private ListeningExecutorService executorService;
     private AtomicBoolean requested = new AtomicBoolean(false);
+    List<? extends DagNodeMonitor<Context>> monitors;
     private ListenableFuture<Object> future;
 
-    public DagNodeProducer(IDagNode<Context> dagNode, List<IDagNode<Context>> fatherNodes, boolean isAsync, ListeningExecutorService executorService) {
+
+    public DagNodeProducer(IDagNode<Context> dagNode,
+                           List<IDagNode<Context>> fatherNodes,
+                           boolean isAsync,
+                           ListeningExecutorService executorService,
+                           List<? extends DagNodeMonitor<Context>> monitors) {
         this.dagNode = dagNode;
         this.fatherNodes = fatherNodes;
         this.isAsync = isAsync;
         this.executorService = executorService;
+        this.monitors = monitors;
     }
 
     public ListenableFuture<Object> submit(Context context){
