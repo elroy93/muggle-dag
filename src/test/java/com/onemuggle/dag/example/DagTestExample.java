@@ -83,7 +83,7 @@ public class DagTestExample {
             5,
             TimeUnit.MINUTES,
             new LinkedBlockingDeque<>(1000),
-            new NamedThreadFactory("执行线程", false));
+            new NamedThreadFactory("执行线程-", false));
     public static ThreadPoolExecutor monitorThreadPoolExecutor = new ThreadPoolExecutor(1,
             1,
             5,
