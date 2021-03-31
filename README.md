@@ -21,8 +21,6 @@
 
 调试代码可以参考test.example文件夹.
 
-### 执行结果
-![img.png](img.png)
 
 ### 使用demo
 ![img_2.png](img_2.png)
