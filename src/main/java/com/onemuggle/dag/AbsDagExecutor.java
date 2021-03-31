@@ -7,6 +7,7 @@ import com.google.common.collect.Maps;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import lombok.Getter;
 
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -14,6 +15,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+@Getter
 public class AbsDagExecutor<Context> implements IDagExecutor<Context> {
 
     // 初始化数据
@@ -91,7 +93,9 @@ public class AbsDagExecutor<Context> implements IDagExecutor<Context> {
 
         // 构建dag图,并提交
         ListenableFuture<Object> future = buildNodeFuture(context, monitors, lastNodeProducer, nodeFatherProducerMap);
-        return DagResult.builder().future(future).monitors(monitors).build();
+        return DagResult.builder().future(future)
+                .monitors(monitors)
+                .build();
     }
 
     private ListenableFuture<Object> buildNodeFuture(Context context,

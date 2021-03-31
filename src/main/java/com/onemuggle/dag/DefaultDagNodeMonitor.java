@@ -1,13 +1,17 @@
 package com.onemuggle.dag;
 
+import com.google.common.collect.Maps;
 import lombok.Data;
 import lombok.Getter;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class DefaultDagNodeMonitor implements DagNodeMonitor {
+
+    private Map<String, List<String>> nodeFatherNodeNameMap = Maps.newHashMap();
 
     @Getter
     private Map<DagNodeProducer, DefaultMonitorData> monitorDataMap = new LinkedHashMap<>();
@@ -36,6 +40,16 @@ public class DefaultDagNodeMonitor implements DagNodeMonitor {
         monitor.setExecutionEndTime(System.currentTimeMillis());
     }
 
+    @Override
+    public void submitRuntimeBefore(AbsDagExecutor executor) {
+        IDagNode lastNode = executor.getLastNode();
+        Map<IDagNode<?>, List<IDagNode<?>>> nodeFatherMap = executor.getNodeFatherMap();
+        nodeFatherMap.forEach((node, fathers) -> {
+            nodeFatherNodeNameMap.put(node.getClass().getSimpleName(), fathers.stream().map(Object::getClass).map(Class::getSimpleName).collect(Collectors.toList()));
+        });
+    }
+
+
     /**
      * 打印依赖关系
      *
@@ -51,6 +65,32 @@ public class DefaultDagNodeMonitor implements DagNodeMonitor {
                     producer.getFatherNodes().stream().map(Object::getClass).map(clazz -> ((Class<?>) clazz).getSimpleName()).collect(Collectors.toList())
             ));
         });
+        return sb.toString();
+    }
+
+    /**
+     * http://www.plantuml.com/plantuml/
+     * 画状态转移图的地方那个
+     * @return
+     */
+    public String toPlatUML(){
+        StringBuilder sb = new StringBuilder("");
+        sb.append("@startuml\n scale 300 width\n");
+
+        monitorDataMap.forEach((producer,monitorData) ->{
+            String currentNodeName = producer.getDagNode().getClass().getSimpleName();
+            String executeTime = monitorData.getExecutionEndTime() - monitorData.getExecutionStartTime() + " ms\n";
+            List<String> fathers = (List)producer.getFatherNodes().stream().map(Object::getClass).map(clazz -> ((Class<?>) clazz).getSimpleName()).collect(Collectors.toList());
+            for (String father : fathers) {
+                sb.append(father).append(" --> ").append(currentNodeName).append("\n");
+            }
+            if (fathers.isEmpty()) {
+                sb.append("[*]").append(" --> ").append(currentNodeName).append("\n");
+            }
+            sb.append(currentNodeName).append(" : ").append(executeTime).append("\n");
+        });
+
+        sb.append("@enduml");
         return sb.toString();
     }
 

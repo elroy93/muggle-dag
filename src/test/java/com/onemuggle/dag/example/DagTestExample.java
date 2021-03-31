@@ -37,8 +37,15 @@ public class DagTestExample {
         List<DagNodeMonitor> monitors = dagResult.getMonitors();
 
         // 打印执行结果
-        System.out.println(StrUtil.format("============================== \n 耗时: {}ms \n result : {} \n==============================\n", System.currentTimeMillis() - start, result));
+        System.out.println("=====================================");
+
+        System.out.println(StrUtil.format("耗时: {}ms \n result : {} \n",
+                System.currentTimeMillis() - start, result));
+        System.out.println("=====================================");
         monitors.forEach(monitor -> System.out.println(((DefaultDagNodeMonitor)monitor).prettyPrint()));
+        System.out.println("===============状态图PLAT_UML====================");
+        monitors.forEach(monitor -> System.out.println(((DefaultDagNodeMonitor)monitor).toPlatUML()));
+        System.out.println("=====================================");
 
         System.exit(9);
     }
