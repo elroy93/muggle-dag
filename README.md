@@ -1,5 +1,5 @@
 
-# 废弃 , 更加规范的亲使用京东的asyncTool 
+# 废弃 , 请使用京东的asyncTool 
 > asyncTool(https://gitee.com/jd-platform-opensource/asyncTool)
 
 ---
