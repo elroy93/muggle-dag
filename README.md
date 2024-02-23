@@ -1,3 +1,9 @@
+
+# 废弃 , 更加规范的亲使用京东的asyncTool 
+> asyncTool(https://gitee.com/jd-platform-opensource/asyncTool)
+
+---
+
 ### 实现参考dagger2的生成代码. 使用guava的listenableFuture实现图的构建.
 
 ### 使用
